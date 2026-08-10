@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}{{ meta.title }}{% endblock %}
+{% block content %}
+
+<a href="{{ url_for('dashboard') }}" class="back-link">← Back to dashboard</a>
+
+<div class="page-header">
+  <h1 class="page-title">{{ meta.title }}</h1>
+  <p class="page-subtitle">{{ meta.blurb }}</p>
+</div>
+
+<div class="challenge-layout">
+  <div class="panel">
+    <h2 class="panel-title">Internal Admin Login</h2>
+    <form method="post">
+      <div class="field">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" placeholder="admin" autocomplete="off" />
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="text" id="password" name="password" placeholder="try something..." autocomplete="off" />
+      </div>
+      <button type="submit" class="submit-btn">Attempt login</button>
+    </form>
+
+    {% if result %}
+      {% if result.error %}
+        <div class="result-console blocked">SQL error (query leaked back to you — a real vuln app would do this too):
+{{ result.error }}</div>
+      {% elif result.success %}
+        <div class="result-console success">Login accepted.
+Row returned: {{ result.row }}</div>
+      {% else %}
+        <div class="result-console">Login rejected. No matching row.</div>
+      {% endif %}
+    {% endif %}
+
+    {% if result and result.flag %}
+    <div class="flag-banner">
+      <span class="flag-label">Flag captured</span>
+      {{ result.flag }}
+    </div>
+    {% endif %}
+  </div>
+
+  <div>
+    <div class="panel sidebar-panel">
+      <h2 class="panel-title">Defense</h2>
+      <div class="patch-toggle-row">
+        <span class="patch-status {% if patched %}on{% else %}off{% endif %}">
+          {{ "PATCHED" if patched else "VULNERABLE" }}
+        </span>
+        <form method="post" action="{{ url_for('toggle_patch', name='sqli') }}">
+          <button type="submit" class="patch-btn">{{ "Revert patch" if patched else "Apply patch" }}</button>
+        </form>
+      </div>
+      <p class="defense-note">{{ meta.defense }}</p>
+    </div>
+
+    <div class="panel sidebar-panel">
+      <h2 class="panel-title">Hint</h2>
+      <p class="defense-note">
+        The vulnerable query is built by dropping your input straight into a SQL
+        string. What could you put in the username field to make the WHERE clause
+        always true, or to comment out the password check entirely?
+      </p>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
