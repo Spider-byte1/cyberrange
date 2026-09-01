@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}{{ meta.title }}{% endblock %}
+{% block content %}
+
+<a href="{{ url_for('dashboard') }}" class="back-link">← Back to dashboard</a>
+
+<div class="page-header">
+  <h1 class="page-title">{{ meta.title }}</h1>
+  <p class="page-subtitle">{{ meta.blurb }} You're logged in as <strong>{{ user }}</strong>. Your own invoice is <code>1001</code>.</p>
+</div>
+
+<div class="challenge-layout">
+  <div class="panel">
+    <h2 class="panel-title">Invoice #{{ invoice_id }}</h2>
+
+    <form onsubmit="event.preventDefault(); window.location = '/challenge/idor/' + document.getElementById('inv').value;">
+      <div class="field">
+        <label for="inv">Invoice ID</label>
+        <input type="number" id="inv" value="{{ invoice_id }}" autocomplete="off" />
+      </div>
+      <button type="submit" class="submit-btn">View invoice</button>
+    </form>
+    <div class="candidate-list">
+      <a href="{{ url_for('challenge_idor', invoice_id=1001) }}" class="candidate-chip">1001 (yours)</a>
+      <a href="{{ url_for('challenge_idor', invoice_id=1002) }}" class="candidate-chip">1002</a>
+      <a href="{{ url_for('challenge_idor', invoice_id=1003) }}" class="candidate-chip">1003</a>
+    </div>
+
+    {% if not result.found %}
+      <div class="result-console blocked">No invoice with that ID exists.</div>
+    {% elif not result.allowed %}
+      <div class="result-console blocked">403 Forbidden — this invoice does not belong to you, and the ownership check is active.</div>
+    {% else %}
+      <div class="result-console {% if result.row.owner != user %}success{% endif %}">Owner: {{ result.row.owner }}
+Amount: {{ result.row.amount }}
+Memo: {{ result.row.memo }}</div>
+    {% endif %}
+
+    {% if result.flag %}
+    <div class="flag-banner">
+      <span class="flag-label">Flag captured</span>
+      {{ result.flag }}
+    </div>
+    {% endif %}
+  </div>
+
+  <div>
+    <div class="panel sidebar-panel">
+      <h2 class="panel-title">Defense</h2>
+      <div class="patch-toggle-row">
+        <span class="patch-status {% if patched %}on{% else %}off{% endif %}">
+          {{ "PATCHED" if patched else "VULNERABLE" }}
+        </span>
+        <form method="post" action="{{ url_for('toggle_patch', name='idor') }}">
+          <button type="submit" class="patch-btn">{{ "Revert patch" if patched else "Apply patch" }}</button>
+        </form>
+      </div>
+      <p class="defense-note">{{ meta.defense }}</p>
+    </div>
+
+    <div class="panel sidebar-panel">
+      <h2 class="panel-title">Hint</h2>
+      <p class="defense-note">
+        IDs are sequential and there's no check that the invoice belongs to
+        you. Try <code>1002</code> — it belongs to admin and has an internal
+        note in the memo field.
+      </p>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

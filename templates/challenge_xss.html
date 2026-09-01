@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}{{ meta.title }}{% endblock %}
+{% block content %}
+
+<a href="{{ url_for('dashboard') }}" class="back-link">← Back to dashboard</a>
+
+<div class="page-header">
+  <h1 class="page-title">{{ meta.title }}</h1>
+  <p class="page-subtitle">{{ meta.blurb }}</p>
+</div>
+
+<div class="challenge-layout">
+  <div class="panel">
+    <h2 class="panel-title">Product Search</h2>
+    <form method="get">
+      <div class="field">
+        <label for="q">Search query</label>
+        <input type="text" id="q" name="q" value="{{ query|e }}" placeholder="try a &lt;script&gt; payload..." autocomplete="off" />
+      </div>
+      <button type="submit" class="submit-btn">Search</button>
+    </form>
+
+    {% if query %}
+    <div class="result-console {% if result and result.success %}success{% endif %}">No results found for: {% if reflect_raw %}{{ query|safe }}{% else %}{{ query }}{% endif %}</div>
+    {% endif %}
+
+    {% if result and result.flag %}
+    <div class="flag-banner">
+      <span class="flag-label">Flag captured</span>
+      {{ result.flag }}
+    </div>
+    {% endif %}
+  </div>
+
+  <div>
+    <div class="panel sidebar-panel">
+      <h2 class="panel-title">Defense</h2>
+      <div class="patch-toggle-row">
+        <span class="patch-status {% if patched %}on{% else %}off{% endif %}">
+          {{ "PATCHED" if patched else "VULNERABLE" }}
+        </span>
+        <form method="post" action="{{ url_for('toggle_patch', name='xss') }}">
+          <button type="submit" class="patch-btn">{{ "Revert patch" if patched else "Apply patch" }}</button>
+        </form>
+      </div>
+      <p class="defense-note">{{ meta.defense }}</p>
+    </div>
+
+    <div class="panel sidebar-panel">
+      <h2 class="panel-title">Hint</h2>
+      <p class="defense-note">
+        The page currently echoes your query back into the HTML without
+        escaping it when vulnerable. A payload containing
+        &lt;script&gt; or an on-event attribute (onerror=, onload=) will be
+        detected as a successful reflection when the patch is off.
+      </p>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

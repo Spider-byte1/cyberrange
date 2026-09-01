@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}{{ meta.title }}{% endblock %}
+{% block content %}
+
+<a href="{{ url_for('dashboard') }}" class="back-link">← Back to dashboard</a>
+
+<div class="page-header">
+  <h1 class="page-title">{{ meta.title }}</h1>
+  <p class="page-subtitle">{{ meta.blurb }}</p>
+</div>
+
+<div class="challenge-layout">
+  <div class="panel">
+    <h2 class="panel-title">Network Diagnostics</h2>
+    <form method="post">
+      <div class="field">
+        <label for="hostname">Hostname</label>
+        <input type="text" id="hostname" name="hostname" value="{{ hostname|e }}" placeholder="example.com" autocomplete="off" />
+      </div>
+      <button type="submit" class="submit-btn">Run diagnostic</button>
+    </form>
+
+    {% if result %}
+    <div class="result-console {% if result.success %}success{% endif %}">{{ result.output }}</div>
+    {% endif %}
+
+    {% if result and result.flag %}
+    <div class="flag-banner">
+      <span class="flag-label">Flag captured</span>
+      {{ result.flag }}
+    </div>
+    {% endif %}
+  </div>
+
+  <div>
+    <div class="panel sidebar-panel">
+      <h2 class="panel-title">Defense</h2>
+      <div class="patch-toggle-row">
+        <span class="patch-status {% if patched %}on{% else %}off{% endif %}">
+          {{ "PATCHED" if patched else "VULNERABLE" }}
+        </span>
+        <form method="post" action="{{ url_for('toggle_patch', name='cmdi') }}">
+          <button type="submit" class="patch-btn">{{ "Revert patch" if patched else "Apply patch" }}</button>
+        </form>
+      </div>
+      <p class="defense-note">{{ meta.defense }}</p>
+    </div>
+
+    <div class="panel sidebar-panel">
+      <h2 class="panel-title">Hint</h2>
+      <p class="defense-note">
+        No real shell ever runs here — output is simulated so you can safely
+        learn the pattern. Try chaining a second command onto the hostname
+        with <code>;</code> and asking it to read a "secret" file.
+      </p>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
